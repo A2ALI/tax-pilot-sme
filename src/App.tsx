@@ -5,6 +5,7 @@ import { DeductiblesPage } from './components/Deductibles';
 import { Dashboard } from './components/Dashboard';
 import { CompliancePage } from './components/Compliance';
 import { BottomNav } from './components/BottomNav';
+import { InstallPopup } from './components/InstallPopup';
 
 function App() {
   const { onboardingStep, activeTab } = useStore();
@@ -27,7 +28,12 @@ function App() {
         </div>
       )}
 
-      {onboardingStep >= 99 && <BottomNav />}
+      {onboardingStep >= 99 && (
+        <>
+          <InstallPopup />
+          <BottomNav />
+        </>
+      )}
     </div>
   );
 }
