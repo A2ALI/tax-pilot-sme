@@ -26,7 +26,7 @@ const DuckDBContext = createContext<DuckDBContextType>({ db: null, conn: null, r
 
 export const useDuckDB = () => useContext(DuckDBContext);
 
-let isInitializing = false;
+
 
 export const DuckDBProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     // Preserve WASM workers across Vite HMR hot-reloads using global scope
