@@ -1,33 +1,43 @@
 import { create } from 'zustand';
 
-// Phase 1
+export type TabName = 'Dashboard' | 'Inventory' | 'Deductibles' | 'Compliance';
+
+// Minimalist Onboarding Profile
 interface BusinessProfile {
   name: string;
-  hasTIN: boolean | null;
-  isSmallCompany: boolean | null; // < 50M turnover
-  expenses: { type: string; amount: number }[];
-  employees: Employee[];
+  isRegistered: boolean | null; // CAC/TIN
+  locationType: 'Physical Shop' | 'Online Only' | null;
+  ownershipType: 'Owned' | 'Rented' | null; // Only if Physical
+  offersDelivery: boolean | null;
+  ownerSalary: number;
 }
+
 
 interface Employee {
   id: string;
   name: string;
-  salary: number;
+  salary: number; // Monthly
   allowances: number;
 }
 
-// Phase 2
+interface OperatingCost {
+  id: string;
+  type: 'Rent' | 'Electricity' | 'Equipment' | 'Delivery Fuel' | string;
+  amount: number;
+}
+
 // Inventory Categories: Basic Food, Medicine/Books, General Goods
 interface InventoryItem {
   id: string;
   category: 'Basic Food' | 'Medicine/Books' | 'General Goods';
   name: string;
   quantity: number;
-  purchasePrice: number;
-  transportCost: number;
-  laborCost: number;
-  sellingPrice: number;
-  // Computed: vat is 0% if Basic Food/Medicine/Books or turnover < 50M. Otherwise 7.5%
+  entryType: 'Bulk' | 'Single';
+  purchasePricePerUnit: number;
+  totalTransportCost: number; // For the entire batch
+  totalLaborCost: number; // For the entire batch
+  trueUnitCost: number; // Computed during add
+  sellingPricePerUnit: number;
 }
 
 interface SalesLedgerItem extends InventoryItem {
@@ -37,13 +47,20 @@ interface SalesLedgerItem extends InventoryItem {
 }
 
 interface TaxPilotState {
+  activeTab: TabName;
+  setActiveTab: (tab: TabName) => void;
+
   onboardingStep: number;
   setOnboardingStep: (step: number) => void;
 
   profile: BusinessProfile;
   updateProfile: (updates: Partial<BusinessProfile>) => void;
-  addExpense: (type: string, amount: number) => void;
+  
+  employees: Employee[];
   addEmployee: (emp: Employee) => void;
+  
+  operatingCosts: OperatingCost[];
+  addOperatingCost: (cost: OperatingCost) => void;
 
   inventory: InventoryItem[];
   addInventoryItem: (item: InventoryItem) => void;
@@ -53,33 +70,33 @@ interface TaxPilotState {
 }
 
 export const useStore = create<TaxPilotState>((set) => ({
+  activeTab: 'Dashboard',
+  setActiveTab: (tab) => set({ activeTab: tab }),
+
   onboardingStep: 1,
   setOnboardingStep: (step) => set({ onboardingStep: step }),
 
   profile: {
     name: 'My Business',
-    hasTIN: null,
-    isSmallCompany: null,
-    expenses: [],
-    employees: [],
+    isRegistered: null,
+    locationType: null,
+    ownershipType: null,
+    offersDelivery: null,
+    ownerSalary: 0,
   },
 
   updateProfile: (updates) => set((state) => ({
     profile: { ...state.profile, ...updates }
   })),
 
-  addExpense: (type, amount) => set((state) => ({
-    profile: {
-      ...state.profile,
-      expenses: [...state.profile.expenses, { type, amount }]
-    }
+  employees: [],
+  addEmployee: (emp) => set((state) => ({
+    employees: [...state.employees, emp]
   })),
 
-  addEmployee: (emp) => set((state) => ({
-    profile: {
-      ...state.profile,
-      employees: [...state.profile.employees, emp]
-    }
+  operatingCosts: [],
+  addOperatingCost: (cost) => set((state) => ({
+    operatingCosts: [...state.operatingCosts, cost]
   })),
 
   inventory: [],
@@ -94,16 +111,19 @@ export const useStore = create<TaxPilotState>((set) => ({
 
     const item = state.inventory[itemIdx];
     
-    // RPA Action logic
-    const unitCost = (item.purchasePrice + Math.max(0, item.transportCost) + Math.max(0, item.laborCost)) / item.quantity;
-    const profit = item.sellingPrice - unitCost;
+    // Profit Calculation
+    const profit = item.sellingPricePerUnit - item.trueUnitCost;
     
-    // VAT logic
+    // Determine 50M threshold lazily based on current past sales logic
+    const totalCurrentRevenue = state.salesLog.reduce((acc, sale) => acc + sale.sellingPricePerUnit, 0);
+    const totalPotentialTurnover = totalCurrentRevenue + item.sellingPricePerUnit;
+    const isSmallCompany = totalPotentialTurnover < 50000000;
+
     let vatRate = 0;
-    if (item.category === 'General Goods' && state.profile.isSmallCompany === false) {
+    if (item.category === 'General Goods' && !isSmallCompany) {
       vatRate = 0.075; // 7.5%
     }
-    const vatCollected = item.sellingPrice * vatRate;
+    const vatCollected = item.sellingPricePerUnit * vatRate;
 
     const sale: SalesLedgerItem = {
       ...item,
@@ -113,7 +133,8 @@ export const useStore = create<TaxPilotState>((set) => ({
     };
 
     const newInventory = [...state.inventory];
-    newInventory[itemIdx].quantity -= 1;
+    newInventory[itemIdx] = { ...newInventory[itemIdx], quantity: newInventory[itemIdx].quantity - 1 };
+    
     if (newInventory[itemIdx].quantity <= 0) {
       newInventory.splice(itemIdx, 1);
     }

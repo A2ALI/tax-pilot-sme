@@ -33,7 +33,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,wasm}'],
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB to accommodate DuckDB WASM
+        maximumFileSizeToCacheInBytes: 50 * 1024 * 1024, // 50MB to accommodate DuckDB WASM
       }
     })
   ],
