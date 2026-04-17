@@ -48,7 +48,22 @@ export const InstallPopup: React.FC = () => {
   // Manual iOS check since Apple doesn't cleanly emit beforeinstallprompt
   const [showIOSPrompt, setShowIOSPrompt] = useState(iOS && !isStandalone);
 
-  if (!showPrompt && !showIOSPrompt) return null;
+  if (!showPrompt && !showIOSPrompt) {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return (
+        <button 
+           onClick={() => {
+             const e = new Event('beforeinstallprompt');
+             Object.assign(e, { prompt: () => console.log('Mock Native Prompt Triggered'), userChoice: Promise.resolve({ outcome: 'accepted' }) });
+             window.dispatchEvent(e);
+           }}
+           style={{ position: 'fixed', top: '10px', right: '10px', backgroundColor: 'purple', color: 'white', padding: '8px', borderRadius: '8px', zIndex: 10000, border: 'none', fontWeight: 'bold' }}>
+           Simulate Install (Dev)
+         </button>
+      )
+    }
+    return null;
+  }
 
   return (
     <div style={{
