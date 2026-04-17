@@ -38,27 +38,33 @@ body {
 .display-mega {
   font-family: 'Inter', sans-serif;
   font-weight: 900;
-  font-size: clamp(3rem, 10vw, 126px);
-  line-height: 0.85;
+  font-size: clamp(2rem, 10vw, 126px);
+  line-height: 1.1;
   font-variant-ligatures: contextual;
-  letter-spacing: normal;
+  letter-spacing: -0.02em;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .display-hero {
   font-family: 'Inter', sans-serif;
   font-weight: 900;
-  font-size: clamp(2.5rem, 8vw, 96px);
-  line-height: 0.85;
+  font-size: clamp(1.75rem, 8vw, 96px);
+  line-height: 1.1;
   font-variant-ligatures: contextual;
-  letter-spacing: normal;
+  letter-spacing: -0.02em;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .section-heading {
   font-family: 'Inter', sans-serif;
   font-weight: 900;
-  font-size: clamp(2rem, 6vw, 64px);
-  line-height: 0.85;
+  font-size: clamp(1.5rem, 6vw, 64px);
+  line-height: 1.1;
   font-variant-ligatures: contextual;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .sub-heading {

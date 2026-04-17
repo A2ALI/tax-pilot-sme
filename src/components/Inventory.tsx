@@ -144,7 +144,6 @@ export const InventoryPage: React.FC = () => {
                 Units Left: <strong>{item.quantity}</strong> | True Cost: ₦{item.trueUnitCost.toFixed(2)}
               </p>
             </div>
-            
             <button className="btn" style={{ padding: '8px 16px', backgroundColor: 'var(--color-light-surface)', borderRadius: '999px', fontSize: '14px' }} onClick={() => markAsSold(item.id)}>
               <CheckCircle2 color="var(--color-sentiment-positive)" size={16} className="mr-2" /> Mark Sold
             </button>

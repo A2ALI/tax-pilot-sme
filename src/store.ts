@@ -1,4 +1,12 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import { get, set as idbSet, del } from 'idb-keyval';
+// Custom IDB Storage
+const idbStorage: StateStorage = {
+  getItem: async (name) => (await get(name)) || null,
+  setItem: async (name, value) => idbSet(name, value),
+  removeItem: async (name) => del(name),
+};
 
 export type TabName = 'Dashboard' | 'Inventory' | 'Deductibles' | 'Compliance';
 
@@ -58,18 +66,24 @@ interface TaxPilotState {
   
   employees: Employee[];
   addEmployee: (emp: Employee) => void;
+  setEmployees: (emps: Employee[]) => void;
   
   operatingCosts: OperatingCost[];
   addOperatingCost: (cost: OperatingCost) => void;
+  setOperatingCosts: (costs: OperatingCost[]) => void;
 
   inventory: InventoryItem[];
   addInventoryItem: (item: InventoryItem) => void;
   
   salesLog: SalesLedgerItem[];
   markAsSold: (itemId: string) => void;
+  setInventory: (items: InventoryItem[]) => void;
+  setSalesLog: (sales: SalesLedgerItem[]) => void;
 }
 
-export const useStore = create<TaxPilotState>((set) => ({
+export const useStore = create<TaxPilotState>()(
+  persist(
+    (set, getApi) => ({
   activeTab: 'Dashboard',
   setActiveTab: (tab) => set({ activeTab: tab }),
 
@@ -90,58 +104,63 @@ export const useStore = create<TaxPilotState>((set) => ({
   })),
 
   employees: [],
-  addEmployee: (emp) => set((state) => ({
-    employees: [...state.employees, emp]
-  })),
+  setEmployees: (emps) => set({ employees: emps }),
+  addEmployee: (emp) => set((state) => ({ employees: [...state.employees, emp] })),
 
   operatingCosts: [],
-  addOperatingCost: (cost) => set((state) => ({
-    operatingCosts: [...state.operatingCosts, cost]
-  })),
+  setOperatingCosts: (costs) => set({ operatingCosts: costs }),
+  addOperatingCost: (cost) => set((state) => ({ operatingCosts: [...state.operatingCosts, cost] })),
 
   inventory: [],
-  addInventoryItem: (item) => set((state) => ({
-    inventory: [...state.inventory, item]
-  })),
+  setInventory: (items) => set({ inventory: items }),
+  addInventoryItem: (item) => set((state) => ({ inventory: [...state.inventory, item] })),
 
   salesLog: [],
-  markAsSold: (itemId) => set((state) => {
+  setSalesLog: (sales) => set({ salesLog: sales }),
+  markAsSold: (itemId) => {
+    const state = getApi();
     const itemIdx = state.inventory.findIndex(i => i.id === itemId);
-    if (itemIdx === -1) return state;
+    if (itemIdx === -1) return;
 
     const item = state.inventory[itemIdx];
-    
-    // Profit Calculation
     const profit = item.sellingPricePerUnit - item.trueUnitCost;
-    
-    // Determine 50M threshold lazily based on current past sales logic
     const totalCurrentRevenue = state.salesLog.reduce((acc, sale) => acc + sale.sellingPricePerUnit, 0);
     const totalPotentialTurnover = totalCurrentRevenue + item.sellingPricePerUnit;
     const isSmallCompany = totalPotentialTurnover < 50000000;
 
     let vatRate = 0;
     if (item.category === 'General Goods' && !isSmallCompany) {
-      vatRate = 0.075; // 7.5%
+      vatRate = 0.075;
     }
     const vatCollected = item.sellingPricePerUnit * vatRate;
+    const saleDate = new Date().toISOString();
 
+    const saleId = `${item.id}-${Date.now()}`;
     const sale: SalesLedgerItem = {
-      ...item,
-      saleDate: new Date().toISOString(),
-      profit,
-      vatCollected
+      ...item, id: saleId, saleDate, profit, vatCollected
     };
 
     const newInventory = [...state.inventory];
     newInventory[itemIdx] = { ...newInventory[itemIdx], quantity: newInventory[itemIdx].quantity - 1 };
-    
     if (newInventory[itemIdx].quantity <= 0) {
       newInventory.splice(itemIdx, 1);
     }
 
-    return {
-      inventory: newInventory,
-      salesLog: [...state.salesLog, sale]
-    };
-  })
-}));
+    set({ inventory: newInventory, salesLog: [...state.salesLog, sale] });
+  }
+    }),
+    {
+      name: 'tax-pilot-sme-storage',
+      storage: createJSONStorage(() => idbStorage),
+      partialize: (state) => ({ 
+        profile: state.profile, 
+        onboardingStep: state.onboardingStep,
+        activeTab: state.activeTab,
+        inventory: state.inventory,
+        salesLog: state.salesLog,
+        employees: state.employees,
+        operatingCosts: state.operatingCosts
+      }),
+    }
+  )
+);

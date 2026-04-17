@@ -29,23 +29,23 @@ export const Dashboard: React.FC = () => {
         <h3 className="card-title">{profile.name} - Command Center</h3>
       </div>
 
-      <div className="flex-col gap-6">
-        <div style={{ backgroundColor: 'var(--color-near-black)', padding: '24px', borderRadius: '24px', color: 'var(--color-white)' }}>
+      <div className="flex-col gap-6" style={{ textAlign: 'center' }}>
+        <div style={{ backgroundColor: 'var(--color-near-black)', padding: '24px', borderRadius: '24px', color: 'var(--color-white)', textAlign: 'center' }}>
           <p className="body-light" style={{ fontSize: '16px', color: 'var(--color-gray)' }}>Net Profit</p>
-          <h2 className="display-hero" style={{ fontSize: 'clamp(2.5rem, 8vw, 64px)', color: netProfit >= 0 ? 'var(--color-wise-green)' : 'var(--color-sentiment-danger)' }}>
+          <h2 className="display-hero" style={{ fontSize: 'clamp(2rem, 8vw, 64px)', color: netProfit >= 0 ? 'var(--color-wise-green)' : 'var(--color-sentiment-danger)' }}>
             ₦{netProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </h2>
         </div>
 
-        <div style={{ padding: '24px', borderRadius: '24px', border: '1px solid rgba(14,15,12,0.12)' }}>
+        <div style={{ padding: '24px', borderRadius: '24px', border: '1px solid rgba(14,15,12,0.12)', textAlign: 'center' }}>
           <p className="body-light" style={{ fontSize: '16px', color: 'var(--color-gray)' }}>Total Revenue</p>
-          <h2 className="display-mega" style={{ fontSize: 'clamp(3rem, 10vw, 78px)' }}>
+          <h2 className="display-mega" style={{ fontSize: 'clamp(2.2rem, 10vw, 78px)' }}>
             ₦{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </h2>
         </div>
 
-        <div style={{ backgroundColor: isSmallCompany ? 'var(--color-subtle-green)' : 'var(--color-light-surface)', padding: '24px', borderRadius: '24px' }}>
-          <div className="flex justify-between items-start mb-2">
+        <div style={{ backgroundColor: isSmallCompany ? 'var(--color-subtle-green)' : 'var(--color-light-surface)', padding: '24px', borderRadius: '24px', textAlign: 'center' }}>
+          <div className="flex justify-between items-start mb-2" style={{ justifyContent: 'center', gap: '12px' }}>
             <p className="body-light" style={{ fontSize: '16px', color: 'var(--color-near-black)' }}>Estimated Tax Limit</p>
             {isSmallCompany ? (
               <span style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--color-sentiment-positive)', color: 'white', padding: '4px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: 'bold' }}>
@@ -58,7 +58,7 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
           
-          <h2 className="display-hero" style={{ fontSize: 'clamp(2.5rem, 8vw, 64px)' }}>
+          <h2 className="display-hero" style={{ fontSize: 'clamp(2rem, 8vw, 64px)' }}>
             ₦{estimatedTax.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </h2>
           {isSmallCompany ? (

@@ -36,11 +36,17 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 50 * 1024 * 1024, // 50MB to accommodate DuckDB WASM
       },
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module',
       }
     })
   ],
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
+  },
   optimizeDeps: {
     exclude: ['@duckdb/duckdb-wasm'] // Avoid pre-bundling issues with wasm
   }
