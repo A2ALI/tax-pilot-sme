@@ -126,7 +126,7 @@ export const useStore = create<TaxPilotState>()(
     const profit = item.sellingPricePerUnit - item.trueUnitCost;
     const totalCurrentRevenue = state.salesLog.reduce((acc, sale) => acc + sale.sellingPricePerUnit, 0);
     const totalPotentialTurnover = totalCurrentRevenue + item.sellingPricePerUnit;
-    const isSmallCompany = totalPotentialTurnover < 50000000;
+    const isSmallCompany = totalPotentialTurnover < 100000000;
 
     let vatRate = 0;
     if (item.category === 'General Goods' && !isSmallCompany) {

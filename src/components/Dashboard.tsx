@@ -14,7 +14,7 @@ export const Dashboard: React.FC = () => {
 
   const netProfit = totalRevenue - (totalCostOfGoods + totalOperatingCosts + totalStaffCost + profile.ownerSalary);
   
-  const isSmallCompany = totalRevenue < 50000000;
+  const isSmallCompany = totalRevenue < 100000000;
   
   let estimatedTax = 0;
   if (!isSmallCompany) {
@@ -62,7 +62,7 @@ export const Dashboard: React.FC = () => {
             ₦{estimatedTax.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </h2>
           {isSmallCompany ? (
-            <p className="body-light mt-4" style={{ fontSize: '14px', color: 'var(--color-sentiment-positive)' }}>0% CIT (Turnover &lt; ₦50M NTA 2025 rule)</p>
+            <p className="body-light mt-4" style={{ fontSize: '14px', color: 'var(--color-sentiment-positive)' }}>0% CIT (Turnover &lt; ₦100M — NTA 2025 rule)</p>
           ) : (
             <p className="body-light mt-4" style={{ fontSize: '14px', color: 'var(--color-sentiment-danger)' }}>30% CIT + 4% Dev Levy Applied</p>
           )}
